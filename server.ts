@@ -27,13 +27,52 @@ const client = new Client(dbConfig);
 client.connect();
 
 app.get("/", async (req, res) => {
-  const dbres = await client.query('select * from categories');
+  const dbres = await client.query('select * from pastebin');
   res.json(dbres.rows);
 });
 
+// Add user input to database
+app.post("/input", async (req,res) => {
+  try {
+    const { title, description } = req.body;
+    const newPost = await client.query("INSERT INTO pastebin (post_title)(post_desc) VALUES($1)($2)",
+    [title, description]);
+
+    res.json(newPost)
+  }
+  catch(err) {
+    console.log(err.message);
+  }
+});
+
+// See all posts in reverse chronological order
+app.get("/viewposts", async (req,res) => {
+  try {
+    const allPosts = await client.query("SELECT * FROM pastebin ORDER BY post_id DESC");
+    res.json(allPosts.rows)
+  }
+  catch(err){
+    console.log(err.message);
+  }
+});
+
+// Get single post 
+app.get("/post/:id", async (req,res) => {
+  try {
+    const { id } = req.params;
+    const post = await client.query("SELECT * FROM pastebin where post_id = $1",
+    [id]);
+
+    res.json(post.rows[0]);
+    // returns first item for one post
+  }
+  catch(err) {
+    console.log(err.message);
+  }
+});
 
 //Start the server on the given port
-const port = process.env.PORT;
+const port = process.env.PORT ?? 4000;
 if (!port) {
   throw 'Missing PORT environment variable.  Set it in .env file.';
 }
