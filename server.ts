@@ -27,7 +27,8 @@ const client = new Client(dbConfig);
 client.connect();
 
 app.get("/", async (req, res) => {
-  const dbres = await client.query('select * from pastebin');
+  const dbres = await client.query(
+    'SELECT * FROM pastebin');
   res.json(dbres.rows);
 });
 
@@ -35,7 +36,8 @@ app.get("/", async (req, res) => {
 app.post("/input", async (req,res) => {
   try {
     const { title, description } = req.body;
-    const newPost = await client.query("INSERT INTO pastebin (post_title)(post_desc) VALUES($1)($2)",
+    const newPost = await client.query(
+      "INSERT INTO pastebin (post_title)(post_desc) VALUES($1)($2)",
     [title, description]);
 
     res.json(newPost)
@@ -48,7 +50,9 @@ app.post("/input", async (req,res) => {
 // See all posts in reverse chronological order
 app.get("/viewposts", async (req,res) => {
   try {
-    const allPosts = await client.query("SELECT * FROM pastebin ORDER BY post_id DESC");
+    const allPosts = await client.query(
+      "SELECT * FROM pastebin ORDER BY post_id DESC");
+      
     res.json(allPosts.rows)
   }
   catch(err){
@@ -60,7 +64,8 @@ app.get("/viewposts", async (req,res) => {
 app.get("/post/:id", async (req,res) => {
   try {
     const { id } = req.params;
-    const post = await client.query("SELECT * FROM pastebin where post_id = $1",
+    const post = await client.query(
+      "SELECT * FROM pastebin where post_id = $1",
     [id]);
 
     res.json(post.rows[0]);
@@ -68,6 +73,37 @@ app.get("/post/:id", async (req,res) => {
   }
   catch(err) {
     console.log(err.message);
+  }
+});
+
+// Delete a post 
+app.delete("post/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletePost = await client.query(
+      "DELETE FROM pastebin where post_id = $1",
+    [id]);
+
+    res.json("Post has been deleted.")
+  }
+  catch(err){
+    console.log(err.message)
+  }
+});
+
+// Modify and update a post
+app.put("post/:id", async (req, res) => {
+  try{
+    const { id } = req.params;
+    const { description } = req.body;
+    const updatePost = await client.query(
+      "UPDATE pastebin SET post_desc = $1 WHERE post_id = $2",
+    [description, id]);
+
+    res.json("Post was updated.");
+  }
+  catch(err){
+    console.log(err.message)
   }
 });
 
