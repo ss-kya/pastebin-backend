@@ -4,6 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "lint": "eslint src",
     "start": "node dist/server.js",
     "start:dev": "LOCAL=true ts-node server.ts",
     "postinstall": "tsc"
