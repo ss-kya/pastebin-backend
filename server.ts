@@ -102,17 +102,69 @@ app.delete("/post/:id", async (req, res) => {
 app.put("/post/:id", async (req, res) => {
   try{
     const { id } = req.params;
-    const { description } = req.body;
+    const { title, description } = req.body;
     const updatePost = await client.query(
-      "UPDATE pastebin SET post_desc = $1 WHERE post_id = $2",
-    [description, id]);
-
+      "UPDATE pastebin SET post_desc = $1, post_title = $2 WHERE post_id = $3",
+        [description, title, id]
+    );
+    
     res.json("Post was updated.");
   }
   catch(err){
     console.log(err.message)
   }
 });
+
+// COMMENTS
+
+// Create new comment specific to a given post
+app.post("/post/:id/comments", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { comment } = req.body;
+    const response = await client.query("INSERT INTO comments (post_id, comment_desc) VALUES($1, $2)",
+    [id, comment]);
+    
+    res.status(201).json({
+      status: "success",})
+
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
+// // Get all comments for a specific post
+app.get("/post/:id/comments", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const allComments = await client.query(
+      "SELECT * FROM comments WHERE post_id = $1", 
+      [id]);
+
+    res.json(allComments.rows);
+  } catch (err) {
+    console.log(err.message);
+  }
+})
+
+// // Delete a comment of a given id that belongs to a paste
+app.delete("/comments/:id", async (req, res) => {
+  try {
+    // const { id } = req.params;
+    const id = req.params.id;
+    // console.log(req.params);
+    console.log("deleted id is ",id);
+    const deletePost = await client.query(
+      "DELETE FROM comments where comment_id = $1",
+    [id]);
+
+    res.json("Comment has been deleted.")
+  }
+  catch(err){
+    console.log(err.message)
+  }
+});
+
 
 //Start the server on the given port
 const port = process.env.PORT;
